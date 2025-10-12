@@ -13,6 +13,11 @@ interface RecipeCardProps {
 export default function RecipeCard({ recipe, onCookNow }: RecipeCardProps) {
   const [showSwap, setShowSwap] = useState(false);
 
+  // Add null checks to prevent errors
+  if (!recipe) {
+    return <div>Loading...</div>;
+  }
+
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'easy': return 'bg-green-100 text-green-800';
@@ -52,8 +57,8 @@ export default function RecipeCard({ recipe, onCookNow }: RecipeCardProps) {
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 text-yellow-500" />
-              <span className={`font-semibold ${getScoreColor(recipe.score.total)}`}>
-                {recipe.score.total}
+              <span className={`font-semibold ${getScoreColor(recipe.score?.total || 0)}`}>
+                {recipe.score?.total || 0}
               </span>
             </div>
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(recipe.difficulty)}`}>
@@ -71,7 +76,7 @@ export default function RecipeCard({ recipe, onCookNow }: RecipeCardProps) {
           <div className="mb-4">
             <h4 className="text-sm font-medium text-gray-700 mb-2">Ingredients:</h4>
             <ul className="text-sm text-gray-600 space-y-1">
-              {recipe.ingredients.slice(0, 4).map((ingredient, index) => (
+              {recipe.ingredients?.slice(0, 4).map((ingredient, index) => (
                 <li key={index} className="flex items-center justify-between">
                   <span className="flex items-center gap-2">
                     <span>•</span>
@@ -84,20 +89,20 @@ export default function RecipeCard({ recipe, onCookNow }: RecipeCardProps) {
                     swap
                   </button>
                 </li>
-              ))}
-              {recipe.ingredients.length > 4 && (
+              )) || []}
+              {(recipe.ingredients?.length || 0) > 4 && (
                 <li className="text-gray-400 text-xs">
-                  +{recipe.ingredients.length - 4} more...
+                  +{(recipe.ingredients?.length || 0) - 4} more...
                 </li>
               )}
             </ul>
           </div>
 
           {/* Pantry Items */}
-          {recipe.pantry_used.length > 0 && (
+          {(recipe.pantry_used?.length || 0) > 0 && (
             <div className="mb-4">
               <p className="text-xs text-gray-500">
-                Pantry: {recipe.pantry_used.join(', ')}
+                Pantry: {recipe.pantry_used?.join(', ') || ''}
               </p>
             </div>
           )}

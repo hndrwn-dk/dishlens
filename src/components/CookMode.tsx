@@ -23,7 +23,7 @@ export default function CookMode({ recipe, onBack }: CookModeProps) {
 
   // Start timer when step has time
   useEffect(() => {
-    const timeInStep = extractTimeFromStep(recipe.steps[currentStep]);
+    const timeInStep = extractTimeFromStep(recipe.steps?.[currentStep] || '');
     if (timeInStep > 0) {
       setTimeRemaining(timeInStep);
       setIsTimerRunning(true);
@@ -57,7 +57,7 @@ export default function CookMode({ recipe, onBack }: CookModeProps) {
   };
 
   const nextStep = () => {
-    if (currentStep < recipe.steps.length - 1) {
+    if (currentStep < (recipe.steps?.length || 0) - 1) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -79,10 +79,15 @@ export default function CookMode({ recipe, onBack }: CookModeProps) {
   // };
 
   const resetTimer = () => {
-    const timeInStep = extractTimeFromStep(recipe.steps[currentStep]);
+    const timeInStep = extractTimeFromStep(recipe.steps?.[currentStep] || '');
     setTimeRemaining(timeInStep);
     setIsTimerRunning(false);
   };
+
+  // Add null checks to prevent errors
+  if (!recipe || !recipe.steps) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
@@ -99,7 +104,7 @@ export default function CookMode({ recipe, onBack }: CookModeProps) {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900">{recipe.title}</h1>
             <p className="text-gray-600">
-              Step {currentStep + 1} of {recipe.steps.length}
+              Step {currentStep + 1} of {recipe.steps?.length || 0}
             </p>
           </div>
           <div className="w-24"></div> {/* Spacer for centering */}
@@ -139,7 +144,7 @@ export default function CookMode({ recipe, onBack }: CookModeProps) {
               <div className="mb-8">
                 <h3 className="text-xl font-semibold mb-4">Current Step</h3>
                 <div className="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg">
-                  <p className="text-lg text-gray-800">{recipe.steps[currentStep]}</p>
+                  <p className="text-lg text-gray-800">{recipe.steps?.[currentStep] || ''}</p>
                 </div>
               </div>
 
@@ -154,7 +159,7 @@ export default function CookMode({ recipe, onBack }: CookModeProps) {
                 </button>
                 <button
                   onClick={nextStep}
-                  disabled={currentStep === recipe.steps.length - 1}
+                  disabled={currentStep === (recipe.steps?.length || 0) - 1}
                   className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next Step
@@ -169,14 +174,14 @@ export default function CookMode({ recipe, onBack }: CookModeProps) {
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h3 className="text-lg font-semibold mb-4">Ingredients</h3>
               <ul className="space-y-2">
-                {recipe.ingredients.map((ingredient, index) => (
+                {recipe.ingredients?.map((ingredient, index) => (
                   <li key={index} className="flex items-center gap-2">
                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                     <span className="text-sm">
                       {ingredient.item} {ingredient.amount && `(${ingredient.amount})`}
                     </span>
                   </li>
-                ))}
+                )) || []}
               </ul>
             </div>
 
@@ -184,7 +189,7 @@ export default function CookMode({ recipe, onBack }: CookModeProps) {
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h3 className="text-lg font-semibold mb-4">All Steps</h3>
               <div className="space-y-3">
-                {recipe.steps.map((step, index) => (
+                {recipe.steps?.map((step, index) => (
                   <div
                     key={index}
                     className={`p-3 rounded-lg cursor-pointer transition-colors ${
@@ -210,7 +215,7 @@ export default function CookMode({ recipe, onBack }: CookModeProps) {
                       </div>
                     </div>
                   </div>
-                ))}
+                )) || []}
               </div>
             </div>
 
