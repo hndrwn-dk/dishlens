@@ -1,21 +1,21 @@
 import { DetectedItem } from '@/types';
 
-// Simple ingredient normalization mapping
-const INGREDIENT_MAP: Record<string, string> = {
-  'bell pepper': 'capsicum',
-  'spring onion': 'scallion',
-  'courgette': 'zucchini',
-  'aubergine': 'eggplant',
-  'rocket': 'arugula',
-  'coriander': 'cilantro',
-  'beetroot': 'beet',
-  'sweet potato': 'sweet potato',
-  'red pepper': 'red bell pepper',
-  'green pepper': 'green bell pepper',
-  'yellow pepper': 'yellow bell pepper',
-};
+// Simple ingredient normalization mapping (for future use)
+// const INGREDIENT_MAP: Record<string, string> = {
+//   'bell pepper': 'capsicum',
+//   'spring onion': 'scallion',
+//   'courgette': 'zucchini',
+//   'aubergine': 'eggplant',
+//   'rocket': 'arugula',
+//   'coriander': 'cilantro',
+//   'beetroot': 'beet',
+//   'sweet potato': 'sweet potato',
+//   'red pepper': 'red bell pepper',
+//   'green pepper': 'green bell pepper',
+//   'yellow pepper': 'yellow bell pepper',
+// };
 
-export async function detectIngredients(imageBuffer: Buffer): Promise<DetectedItem[]> {
+export async function detectIngredients(_imageBuffer: Buffer): Promise<DetectedItem[]> {
   // For MVP, we'll use a mock implementation
   // In production, this would integrate with Google Vision API
   return mockDetectIngredients();

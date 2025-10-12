@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Upload, ChefHat, Clock, Star } from 'lucide-react';
+import { Upload, ChefHat } from 'lucide-react';
 import { DetectedItem, Recipe } from '@/types';
 import RecipeCard from '@/components/RecipeCard';
 import CookMode from '@/components/CookMode';
@@ -103,7 +103,7 @@ export default function Home() {
         {/* Upload Section */}
         <div className="max-w-2xl mx-auto mb-8">
           <div className="bg-white rounded-2xl shadow-lg p-8">
-            <h2 className="text-xl font-semibold mb-4">What's in your fridge?</h2>
+            <h2 className="text-xl font-semibold mb-4">What&apos;s in your fridge?</h2>
             
             {/* Image Upload */}
             <div className="mb-6">
