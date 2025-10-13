@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createVisionClient } from "../../lib/vision";
-import { canonicalize } from "../../lib/normalize";
-import { withCORS } from "../../lib/cors";
+import { createVisionClient } from "@/lib/vision";
+import { canonicalize } from "@/lib/normalize";
+import { withCORS } from "@/lib/cors";
 
 export const runtime = "nodejs";
 
