@@ -7,6 +7,9 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [detectedItems, setDetectedItems] = useState<any[]>([]);
   const [recipes, setRecipes] = useState<any[]>([]);
+  const [cookingRecipe, setCookingRecipe] = useState<any>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -51,6 +54,40 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const startCooking = (recipe: any) => {
+    setCookingRecipe(recipe);
+    setCurrentStep(0);
+    setCompletedSteps(new Set());
+  };
+
+  const nextStep = () => {
+    if (cookingRecipe && currentStep < cookingRecipe.steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const toggleStepComplete = (stepIndex: number) => {
+    const newCompleted = new Set(completedSteps);
+    if (newCompleted.has(stepIndex)) {
+      newCompleted.delete(stepIndex);
+    } else {
+      newCompleted.add(stepIndex);
+    }
+    setCompletedSteps(newCompleted);
+  };
+
+  const finishCooking = () => {
+    setCookingRecipe(null);
+    setCurrentStep(0);
+    setCompletedSteps(new Set());
   };
 
   const generateRecipes = async () => {
@@ -151,16 +188,126 @@ export default function Home() {
                   <p className="text-sm text-gray-600 mb-4">
                     {recipe.total_time_min} min • {recipe.difficulty} • Score: {recipe.score?.total || 'N/A'}
                   </p>
-                  <div className="text-sm">
+                  <div className="text-sm mb-4">
                     <p className="font-medium mb-2">Ingredients:</p>
                     <ul className="list-disc list-inside space-y-1">
                       {recipe.ingredients?.slice(0, 4).map((ingredient: any, i: number) => (
                         <li key={i}>{ingredient.item}</li>
                       ))}
+                      {recipe.ingredients && recipe.ingredients.length > 4 && (
+                        <li className="text-gray-500">+{recipe.ingredients.length - 4} more...</li>
+                      )}
                     </ul>
                   </div>
+                  <button
+                    onClick={() => startCooking(recipe)}
+                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                  >
+                    🍳 Start Cooking
+                  </button>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Cooking Mode */}
+        {cookingRecipe && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold">🍳 {cookingRecipe.title}</h2>
+                  <button
+                    onClick={finishCooking}
+                    className="text-gray-500 hover:text-gray-700 text-2xl"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Progress */}
+                <div className="mb-6">
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Step {currentStep + 1} of {cookingRecipe.steps?.length || 0}</span>
+                    <span>{Math.round(((currentStep + 1) / (cookingRecipe.steps?.length || 1)) * 100)}% Complete</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${((currentStep + 1) / (cookingRecipe.steps?.length || 1)) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Current Step */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3">Current Step:</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-gray-800">{cookingRecipe.steps?.[currentStep] || 'No steps available'}</p>
+                  </div>
+                </div>
+
+                {/* All Steps */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3">All Steps:</h3>
+                  <div className="space-y-2">
+                    {(cookingRecipe.steps || []).map((step: string, index: number) => (
+                      <div
+                        key={index}
+                        className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                          index === currentStep
+                            ? 'border-green-500 bg-green-50'
+                            : completedSteps.has(index)
+                            ? 'border-green-300 bg-green-25'
+                            : 'border-gray-200 bg-white'
+                        }`}
+                        onClick={() => setCurrentStep(index)}
+                      >
+                        <div className="flex items-start">
+                          <span className="flex-shrink-0 w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-sm font-semibold mr-3">
+                            {index + 1}
+                          </span>
+                          <p className="text-sm text-gray-700">{step}</p>
+                          {completedSteps.has(index) && (
+                            <span className="ml-auto text-green-600">✓</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Navigation */}
+                <div className="flex justify-between">
+                  <button
+                    onClick={prevStep}
+                    disabled={currentStep === 0}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    ← Previous
+                  </button>
+                  
+                  <button
+                    onClick={() => toggleStepComplete(currentStep)}
+                    className={`px-4 py-2 rounded-lg ${
+                      completedSteps.has(currentStep)
+                        ? 'bg-green-600 text-white'
+                        : 'bg-blue-600 text-white'
+                    }`}
+                  >
+                    {completedSteps.has(currentStep) ? '✓ Completed' : 'Mark Complete'}
+                  </button>
+                  
+                  <button
+                    onClick={nextStep}
+                    disabled={currentStep >= (cookingRecipe.steps?.length || 1) - 1}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

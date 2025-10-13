@@ -55,6 +55,12 @@ export async function POST(req: NextRequest) {
       const [res] = await client.labelDetection({ image: { content: buf } });
       items = (res.labelAnnotations || [])
         .filter(l => (l.score || 0) > 0.6)
+        .filter(l => {
+          const desc = (l.description || "").toLowerCase();
+          // Filter out generic food terms
+          const genericTerms = ['food', 'ingredient', 'cooking', 'recipe', 'meal', 'dish', 'cuisine', 'kitchen'];
+          return !genericTerms.some(term => desc.includes(term));
+        })
         .map(l => ({ name: canonicalize(l.description || ""), confidence: l.score || 0 }));
     } catch (error) {
       console.log("❌ Service account failed, falling back to mock:", error);
@@ -88,7 +94,14 @@ export async function POST(req: NextRequest) {
           console.log("✅ Vision API response received");
           
           const labels = json?.responses?.[0]?.labelAnnotations || [];
-          items = labels.filter((x: any) => (x.score || 0) > 0.6)
+          items = labels
+            .filter((x: any) => (x.score || 0) > 0.6)
+            .filter((x: any) => {
+              const desc = (x.description || "").toLowerCase();
+              // Filter out generic food terms
+              const genericTerms = ['food', 'ingredient', 'cooking', 'recipe', 'meal', 'dish', 'cuisine', 'kitchen'];
+              return !genericTerms.some(term => desc.includes(term));
+            })
             .map((x: any) => ({ name: canonicalize(x.description || ""), confidence: x.score || 0 }));
         }
       } catch (error) {
