@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { RECIPES_SYSTEM, recipesUser } from "@/lib/prompts";
-import { scoreRecipe } from "@/lib/score";
-import { withCORS } from "@/lib/cors";
+import { RECIPES_SYSTEM, recipesUser } from "../../lib/prompts";
+import { scoreRecipe } from "../../lib/score";
+import { withCORS } from "../../lib/cors";
 
 export const runtime = "nodejs";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
