@@ -13,19 +13,41 @@ export default function Home() {
     if (!file) return;
 
     setIsLoading(true);
+    setDetectedItems([]);
+    
     try {
+      console.log('📤 Uploading image:', file.name, file.size, 'bytes');
+      
       const formData = new FormData();
       formData.append('image', file);
 
+      console.log('🌐 Calling /api/detect...');
       const response = await fetch('/api/detect', {
         method: 'POST',
         body: formData,
       });
 
+      console.log('📡 Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ API Error:', errorData);
+        alert(`Error: ${errorData.error || 'Upload failed'}`);
+        return;
+      }
+
       const data = await response.json();
+      console.log('✅ Detection result:', data);
+      
       setDetectedItems(data.items || []);
+      
+      if (!data.items || data.items.length === 0) {
+        alert('No ingredients detected. Try a clearer photo of your fridge contents.');
+      }
+      
     } catch (error) {
-      console.error('Error detecting ingredients:', error);
+      console.error('💥 Error detecting ingredients:', error);
+      alert(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
