@@ -1,4 +1,4 @@
-import { Recipe } from "./types";
+import { Recipe } from "@/lib/types";
 
 export function scoreRecipe(r: Recipe) {
   const ease = Math.max(0, 10 - (r.steps?.length ?? 0)) + (r.difficulty === "easy" ? 3 : r.difficulty === "medium" ? 1 : 0);
