@@ -5,6 +5,7 @@ import { Upload, ChefHat, X, Image as ImageIcon, UtensilsCrossed, Apple, Fish, E
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingRecipes, setIsGeneratingRecipes] = useState(false);
   const [detectedItems, setDetectedItems] = useState<any[]>([]);
   const [recipes, setRecipes] = useState<any[]>([]);
   const [cookingRecipe, setCookingRecipe] = useState<any>(null);
@@ -231,7 +232,7 @@ export default function Home() {
   const generateRecipes = async () => {
     if (detectedItems.length === 0) return;
 
-    setIsLoading(true);
+    setIsGeneratingRecipes(true);
     setRecipes([]);
     
     try {
@@ -265,7 +266,7 @@ export default function Home() {
       console.error('Error generating recipes:', error);
       alert(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
-      setIsLoading(false);
+      setIsGeneratingRecipes(false);
     }
   };
 
@@ -278,61 +279,108 @@ export default function Home() {
             <ChefHat className="w-10 h-10 text-green-600" />
             DishLens
           </h1>
-          <p className="text-gray-600">Turn your fridge into dinner in 20 seconds</p>
+          <p className="text-gray-600">Turn your fridge into dinner in minutes</p>
         </div>
 
-        {/* Upload Section */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300">
-            {/* Header - Always visible */}
-            <div className="p-8 pb-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold">What&apos;s in your fridge?</h2>
-              {uploadedImage && (
-                <button
-                  onClick={() => setUploadSectionCollapsed(!uploadSectionCollapsed)}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  {uploadSectionCollapsed ? (
-                    <ChevronDown className="w-6 h-6" />
+        {/* Upload and Detected Items Section - Side by Side */}
+        <div className="max-w-7xl mx-auto mb-8">
+          <div className={`grid gap-6 ${detectedItems.length > 0 ? 'md:grid-cols-2' : 'md:grid-cols-1 max-w-2xl mx-auto'}`}>
+            {/* Upload Section */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300">
+              {/* Header - Always visible */}
+              <div className="p-8 pb-4 flex items-center justify-between">
+                <h2 className="text-xl font-semibold">What&apos;s in your fridge?</h2>
+                {uploadedImage && (
+                  <button
+                    onClick={() => setUploadSectionCollapsed(!uploadSectionCollapsed)}
+                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    {uploadSectionCollapsed ? (
+                      <ChevronDown className="w-6 h-6" />
+                    ) : (
+                      <ChevronUp className="w-6 h-6" />
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Collapsible content */}
+              {!uploadSectionCollapsed && (
+                <div className="px-8 pb-8">
+                  {/* Uploaded Image Preview */}
+                  {uploadedImage ? (
+                    <div>
+                      <img
+                        src={uploadedImage}
+                        alt="Uploaded fridge contents"
+                        className="w-full h-64 object-cover rounded-lg"
+                      />
+                      {isLoading && (
+                        <div className="text-center text-gray-500 mt-6">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
+                          <p className="mt-2">Analyzing ingredients...</p>
+                        </div>
+                      )}
+                    </div>
                   ) : (
-                    <ChevronUp className="w-6 h-6" />
+                    <button
+                      onClick={() => setShowUploadModal(true)}
+                      disabled={isLoading}
+                      className="w-full flex items-center justify-center gap-2 h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <Upload className="w-8 h-8 text-gray-400" />
+                      <span className="text-sm text-gray-500">Upload fridge photo</span>
+                    </button>
                   )}
-                </button>
+                </div>
               )}
             </div>
 
-            {/* Collapsible content */}
-            {!uploadSectionCollapsed && (
-              <div className="px-8 pb-8">
-                {/* Uploaded Image Preview */}
-                {uploadedImage && (
-                  <div className="mb-6">
-                    <img
-                      src={uploadedImage}
-                      alt="Uploaded fridge contents"
-                      className="w-full h-64 object-cover rounded-lg"
-                    />
-                  </div>
-                )}
-
-                {/* Image Upload Button */}
+            {/* Detected Items */}
+            {detectedItems.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-900">Detected Ingredients</h3>
+                  <span className="text-sm text-gray-500">{detectedItems.length} items found</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  {detectedItems.map((item, index) => {
+                    const IconComponent = getIngredientIcon(item.name);
+                    return (
+                      <div
+                        key={index}
+                        className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-3 flex items-center gap-3 hover:shadow-md transition-shadow"
+                      >
+                        <div className="bg-white p-2 rounded-lg shadow-sm">
+                          <IconComponent className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 text-sm capitalize truncate">{item.name}</p>
+                          <p className="text-xs text-green-700">{(item.confidence * 100).toFixed(0)}% match</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
                 <button
-                  onClick={() => setShowUploadModal(true)}
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-2 h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  onClick={generateRecipes}
+                  disabled={isGeneratingRecipes}
+                  className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3.5 px-6 rounded-xl font-bold hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                 >
-                  <Upload className="w-8 h-8 text-gray-400" />
-                  <span className="text-sm text-gray-500">
-                    {uploadedImage ? 'Upload another photo' : 'Upload fridge photo'}
-                  </span>
+                  {isGeneratingRecipes ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Generating Recipes...
+                    </>
+                  ) : (
+                    <>
+                      <ChefHat className="w-5 h-5" />
+                      Generate Recipes
+                    </>
+                  )}
                 </button>
-
-                {isLoading && (
-                  <div className="text-center text-gray-500 mt-6">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
-                    <p className="mt-2">Analyzing ingredients...</p>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -373,13 +421,7 @@ export default function Home() {
                 />
               </label>
 
-              <div className="mt-6 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span>Recent</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
+              <div className="mt-6 flex justify-end">
                 <button
                   onClick={() => setShowUploadModal(false)}
                   className="px-6 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
@@ -387,56 +429,6 @@ export default function Home() {
                   Upload
                 </button>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Detected Items */}
-        {detectedItems.length > 0 && (
-          <div className="max-w-4xl mx-auto mb-8">
-            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900">Detected Ingredients</h3>
-                <span className="text-sm text-gray-500">{detectedItems.length} items found</span>
-              </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
-                {detectedItems.map((item, index) => {
-                  const IconComponent = getIngredientIcon(item.name);
-                  return (
-                    <div
-                      key={index}
-                      className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-3 flex items-center gap-3 hover:shadow-md transition-shadow"
-                    >
-                      <div className="bg-white p-2 rounded-lg shadow-sm">
-                        <IconComponent className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm capitalize truncate">{item.name}</p>
-                        <p className="text-xs text-green-700">{(item.confidence * 100).toFixed(0)}% match</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              <button
-                onClick={generateRecipes}
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3.5 px-6 rounded-xl font-bold hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    Generating Recipes...
-                  </>
-                ) : (
-                  <>
-                    <ChefHat className="w-5 h-5" />
-                    Generate Recipes
-                  </>
-                )}
-              </button>
             </div>
           </div>
         )}
