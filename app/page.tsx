@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Upload, ChefHat, X, Image as ImageIcon, UtensilsCrossed, Apple, Fish, Egg, Milk, Wheat, Beef, Carrot, Leaf, Pizza, Clock, Play, Pause, RotateCcw, ChevronUp, ChevronDown } from 'lucide-react';
+import { Upload, ChefHat, X, Image as ImageIcon, UtensilsCrossed, Apple, Fish, Egg, Milk, Wheat, Beef, Carrot, Leaf, Pizza, Clock, Play, Pause, RotateCcw, ChevronUp, ChevronDown, Camera } from 'lucide-react';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,6 +14,7 @@ export default function Home() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploadSectionCollapsed, setUploadSectionCollapsed] = useState(false);
+  const [uploadMode, setUploadMode] = useState<'upload' | 'camera'>('upload');
   const [timer, setTimer] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
@@ -391,7 +392,7 @@ export default function Home() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl max-w-md w-full p-6 relative">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold">Upload images</h3>
+                <h3 className="text-xl font-semibold">Add Image</h3>
                 <button
                   onClick={() => setShowUploadModal(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -400,33 +401,82 @@ export default function Home() {
                 </button>
               </div>
 
-              <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <ImageIcon className="w-8 h-8 text-gray-400" />
+              {/* Mode Toggle */}
+              <div className="flex gap-2 mb-6">
+                <button
+                  onClick={() => setUploadMode('upload')}
+                  className={`flex-1 py-2.5 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                    uploadMode === 'upload'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <Upload className="w-4 h-4" />
+                  Upload
+                </button>
+                <button
+                  onClick={() => setUploadMode('camera')}
+                  className={`flex-1 py-2.5 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                    uploadMode === 'camera'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <Camera className="w-4 h-4" />
+                  Camera
+                </button>
+              </div>
+
+              {uploadMode === 'upload' ? (
+                <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                      <ImageIcon className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <div className="mb-2">
+                      <span className="text-sm text-gray-600 underline">Click to upload</span>
+                      <span className="text-sm text-gray-600"> or Drag & Drop</span>
+                    </div>
+                    <p className="text-xs text-gray-400">Supported formats: .jpeg, .png</p>
+                    <p className="text-xs text-gray-400">Maximum file size of 12MB.</p>
                   </div>
-                  <div className="mb-2">
-                    <span className="text-sm text-gray-600 underline">Click to upload</span>
-                    <span className="text-sm text-gray-600"> or Drag & Drop</span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/jpeg,image/png,image/jpg"
+                    onChange={handleImageUpload}
+                    disabled={isLoading}
+                  />
+                </label>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                      <Camera className="w-8 h-8 text-green-600" />
+                    </div>
+                    <div className="mb-2">
+                      <span className="text-sm text-gray-600 font-medium">Take a photo</span>
+                    </div>
+                    <p className="text-xs text-gray-400">Use your device camera</p>
+                    <p className="text-xs text-gray-400">to capture your fridge contents</p>
                   </div>
-                  <p className="text-xs text-gray-400">Supported formats: .jpeg, .png</p>
-                  <p className="text-xs text-gray-400">Maximum file size of 12MB.</p>
-                </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/jpeg,image/png,image/jpg"
-                  onChange={handleImageUpload}
-                  disabled={isLoading}
-                />
-              </label>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleImageUpload}
+                    disabled={isLoading}
+                  />
+                </label>
+              )}
 
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={() => setShowUploadModal(false)}
                   className="px-6 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
                 >
-                  Upload
+                  Close
                 </button>
               </div>
             </div>
