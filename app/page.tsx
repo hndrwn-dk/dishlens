@@ -394,28 +394,48 @@ export default function Home() {
         {/* Detected Items */}
         {detectedItems.length > 0 && (
           <div className="max-w-4xl mx-auto mb-8">
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Detected Ingredients</h3>
-              <div className="flex flex-wrap gap-2 mb-4">
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-gray-900">Detected Ingredients</h3>
+                <span className="text-sm text-gray-500">{detectedItems.length} items found</span>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
                 {detectedItems.map((item, index) => {
                   const IconComponent = getIngredientIcon(item.name);
                   return (
-                    <span
+                    <div
                       key={index}
-                      className="bg-green-100 text-green-800 px-3 py-2 rounded-full text-sm flex items-center gap-2"
+                      className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-3 flex items-center gap-3 hover:shadow-md transition-shadow"
                     >
-                      <IconComponent className="w-4 h-4" />
-                      {item.name} ({(item.confidence * 100).toFixed(0)}%)
-                    </span>
+                      <div className="bg-white p-2 rounded-lg shadow-sm">
+                        <IconComponent className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 text-sm capitalize truncate">{item.name}</p>
+                        <p className="text-xs text-green-700">{(item.confidence * 100).toFixed(0)}% match</p>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
+              
               <button
                 onClick={generateRecipes}
                 disabled={isLoading}
-                className="w-full bg-green-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3.5 px-6 rounded-xl font-bold hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
               >
-                {isLoading ? 'Generating Recipes...' : 'Generate Recipes'}
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Generating Recipes...
+                  </>
+                ) : (
+                  <>
+                    <ChefHat className="w-5 h-5" />
+                    Generate Recipes
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -424,12 +444,12 @@ export default function Home() {
         {/* Recipe Cards */}
         {recipes.length > 0 && (
           <div className="max-w-6xl mx-auto">
-            <h3 className="text-2xl font-semibold text-center mb-6">Your Recipe Options</h3>
+            <h3 className="text-2xl font-bold text-center mb-8">Your Recipe Options</h3>
             <div className="grid md:grid-cols-3 gap-6">
               {recipes.map((recipe, index) => (
-                <div key={index} className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div key={index} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow overflow-hidden border border-gray-100">
                   {/* Recipe Image */}
-                  <div className="w-full h-48 bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center">
+                  <div className="relative w-full h-56 bg-gradient-to-br from-green-100 to-blue-100">
                     {recipe.image_url ? (
                       <img 
                         src={recipe.image_url} 
@@ -437,29 +457,68 @@ export default function Home() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <ChefHat className="w-16 h-16 text-green-600 opacity-50" />
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ChefHat className="w-16 h-16 text-green-600 opacity-50" />
+                      </div>
                     )}
+                    <div className="absolute top-3 right-3 bg-white px-3 py-1 rounded-full text-xs font-semibold text-gray-700 shadow-sm">
+                      {recipe.total_time_min} min
+                    </div>
                   </div>
                   
-                  <div className="p-6">
-                    <h4 className="font-semibold text-lg mb-2">{recipe.title}</h4>
-                    <p className="text-sm text-gray-600 mb-4">
-                      {recipe.total_time_min} min • {recipe.difficulty} • Score: {recipe.score?.total || 'N/A'}
-                    </p>
-                    <div className="text-sm mb-4">
-                      <p className="font-medium mb-2">Ingredients:</p>
-                      <ul className="list-disc list-inside space-y-1">
-                        {recipe.ingredients?.slice(0, 4).map((ingredient: any, i: number) => (
-                          <li key={i}>{ingredient.item}</li>
-                        ))}
-                        {recipe.ingredients && recipe.ingredients.length > 4 && (
-                          <li className="text-gray-500">+{recipe.ingredients.length - 4} more...</li>
-                        )}
-                      </ul>
+                  <div className="p-5">
+                    <h4 className="font-bold text-xl mb-2 text-gray-900">{recipe.title}</h4>
+                    
+                    {/* Recipe Stats */}
+                    <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        <span>{recipe.total_time_min}m</span>
+                      </div>
+                      <div className="px-2 py-1 bg-gray-100 rounded text-xs font-medium capitalize">
+                        {recipe.difficulty}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {recipe.servings} servings
+                      </div>
                     </div>
+
+                    {/* Ingredients Preview */}
+                    <div className="mb-4">
+                      <p className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">Key Ingredients</p>
+                      <div className="flex flex-wrap gap-1">
+                        {recipe.ingredients?.slice(0, 3).map((ingredient: any, i: number) => (
+                          <span key={i} className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">
+                            {ingredient.item.split(' ').slice(0, 2).join(' ')}
+                          </span>
+                        ))}
+                        {recipe.ingredients && recipe.ingredients.length > 3 && (
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                            +{recipe.ingredients.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Nutrition Info */}
+                    {(recipe.calories_est || recipe.protein_g_est) && (
+                      <div className="flex gap-4 mb-4 text-xs text-gray-600">
+                        {recipe.calories_est && (
+                          <div>
+                            <span className="font-semibold">{recipe.calories_est}</span> cal
+                          </div>
+                        )}
+                        {recipe.protein_g_est && (
+                          <div>
+                            <span className="font-semibold">{recipe.protein_g_est}g</span> protein
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <button
                       onClick={() => startCooking(recipe)}
-                      className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                      className="w-full bg-green-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-green-700 transition-all hover:shadow-md flex items-center justify-center gap-2"
                     >
                       <ChefHat className="w-4 h-4" />
                       Start Cooking

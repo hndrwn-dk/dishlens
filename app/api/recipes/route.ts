@@ -62,30 +62,37 @@ export async function POST(req: NextRequest) {
         if (!recipe.image_url) {
           // Map recipe types to appropriate food images from Pexels
           const titleLower = recipe.title.toLowerCase();
-          let photoId = '1640777'; // default general dish
+          
+          // Array of photo IDs for each category with variations
+          let photoIds: string[] = [];
           
           if (titleLower.includes('soup') || titleLower.includes('stew') || titleLower.includes('broth')) {
-            photoId = '539451';
+            photoIds = ['539451', '1703272', '2098085'];
           } else if (titleLower.includes('salad') || titleLower.includes('green')) {
-            photoId = '1211887';
+            photoIds = ['1211887', '1640770', '2097090'];
           } else if (titleLower.includes('pasta') || titleLower.includes('spaghetti') || titleLower.includes('noodle')) {
-            photoId = '1438672';
+            photoIds = ['1438672', '1279330', '1640772'];
           } else if (titleLower.includes('rice') || titleLower.includes('fried rice') || titleLower.includes('biryani')) {
-            photoId = '2456435';
+            photoIds = ['2456435', '2456435', '1893555'];
           } else if (titleLower.includes('chicken') || titleLower.includes('poultry')) {
-            photoId = '2338407';
-          } else if (titleLower.includes('beef') || titleLower.includes('steak') || titleLower.includes('meat')) {
-            photoId = '1279330';
+            photoIds = ['2338407', '60616', '616404'];
+          } else if (titleLower.includes('beef') || titleLower.includes('steak') || titleLower.includes('meat') || titleLower.includes('gosht') || titleLower.includes('rendang')) {
+            photoIds = ['1279330', '769289', '410648'];
           } else if (titleLower.includes('fish') || titleLower.includes('seafood') || titleLower.includes('salmon')) {
-            photoId = '1437590';
+            photoIds = ['1437590', '725991', '1683545'];
           } else if (titleLower.includes('curry') || titleLower.includes('spicy')) {
-            photoId = '2474661';
+            photoIds = ['2474661', '2474658', '2703468'];
           } else if (titleLower.includes('stir') || titleLower.includes('fry')) {
-            photoId = '2456435';
+            photoIds = ['2456435', '2456435', '1410235'];
           } else if (titleLower.includes('sandwich') || titleLower.includes('burger')) {
-            photoId = '1639557';
+            photoIds = ['1639557', '1639562', '1633578'];
+          } else {
+            // Different general food images for variety
+            photoIds = ['1640777', '1279330', '1640772'];
           }
           
+          // Use different photo for each recipe index (0, 1, 2)
+          const photoId = photoIds[index % photoIds.length];
           recipe.image_url = `https://images.pexels.com/photos/${photoId}/pexels-photo-${photoId}.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop`;
         }
         return scoreRecipe(recipe);
