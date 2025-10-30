@@ -60,8 +60,10 @@ export async function POST(req: NextRequest) {
       .map((recipe: any) => {
         // Add fallback image URL if not provided
         if (!recipe.image_url) {
-          const keywords = recipe.title.toLowerCase().replace(/\s+/g, '-');
-          recipe.image_url = `https://source.unsplash.com/featured/400x300/?${keywords},food`;
+          // Use a reliable placeholder with recipe title hash for variety
+          const hash = recipe.title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+          const imageNumber = (hash % 50) + 1;
+          recipe.image_url = `https://picsum.photos/seed/${recipe.title.replace(/\s+/g, '-')}/400/300`;
         }
         return scoreRecipe(recipe);
       })

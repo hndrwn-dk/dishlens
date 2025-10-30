@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Upload, ChefHat, X, Image as ImageIcon, UtensilsCrossed } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Upload, ChefHat, X, Image as ImageIcon, UtensilsCrossed, Apple, Fish, Egg, Milk, Wheat, Beef, Carrot, Leaf, Pizza, Clock, Play, Pause, RotateCcw, ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,6 +12,19 @@ export default function Home() {
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [uploadSectionCollapsed, setUploadSectionCollapsed] = useState(false);
+  const [timer, setTimer] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+    };
+  }, [timerInterval]);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -98,6 +111,82 @@ export default function Home() {
     setCookingRecipe(null);
     setCurrentStep(0);
     setCompletedSteps(new Set());
+    stopTimer();
+  };
+
+  const startTimer = () => {
+    if (timerInterval) return;
+    setTimerRunning(true);
+    const interval = setInterval(() => {
+      setTimer(prev => prev + 1);
+    }, 1000);
+    setTimerInterval(interval);
+  };
+
+  const pauseTimer = () => {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      setTimerInterval(null);
+      setTimerRunning(false);
+    }
+  };
+
+  const resetTimer = () => {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      setTimerInterval(null);
+    }
+    setTimer(0);
+    setTimerRunning(false);
+  };
+
+  const stopTimer = () => {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      setTimerInterval(null);
+    }
+    setTimer(0);
+    setTimerRunning(false);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getIngredientIcon = (ingredientName: string) => {
+    const name = ingredientName.toLowerCase();
+    
+    if (name.includes('meat') || name.includes('beef') || name.includes('gosht') || name.includes('rendang') || name.includes('chicken') || name.includes('pork') || name.includes('lamb')) {
+      return Beef;
+    }
+    if (name.includes('fish') || name.includes('salmon') || name.includes('tuna') || name.includes('seafood') || name.includes('shrimp')) {
+      return Fish;
+    }
+    if (name.includes('egg')) {
+      return Egg;
+    }
+    if (name.includes('milk') || name.includes('cheese') || name.includes('yogurt') || name.includes('cream') || name.includes('butter')) {
+      return Milk;
+    }
+    if (name.includes('rice') || name.includes('wheat') || name.includes('bread') || name.includes('pasta') || name.includes('noodle') || name.includes('grain')) {
+      return Wheat;
+    }
+    if (name.includes('carrot') || name.includes('potato') || name.includes('onion') || name.includes('garlic') || name.includes('tomato') || name.includes('pepper') || name.includes('vegetable')) {
+      return Carrot;
+    }
+    if (name.includes('lettuce') || name.includes('spinach') || name.includes('cabbage') || name.includes('kale') || name.includes('herb') || name.includes('leaf') || name.includes('green')) {
+      return Leaf;
+    }
+    if (name.includes('apple') || name.includes('fruit') || name.includes('banana') || name.includes('orange') || name.includes('berry')) {
+      return Apple;
+    }
+    if (name.includes('condiment') || name.includes('sauce') || name.includes('spice') || name.includes('seasoning')) {
+      return Pizza;
+    }
+    
+    return UtensilsCrossed;
   };
 
   const generateRecipes = async () => {
@@ -155,23 +244,56 @@ export default function Home() {
 
         {/* Upload Section */}
         <div className="max-w-2xl mx-auto mb-8">
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <h2 className="text-xl font-semibold mb-4">What&apos;s in your fridge?</h2>
-            
-            {/* Image Upload Button */}
-            <button
-              onClick={() => setShowUploadModal(true)}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <Upload className="w-8 h-8 text-gray-400" />
-              <span className="text-sm text-gray-500">Upload fridge photo</span>
-            </button>
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300">
+            {/* Header - Always visible */}
+            <div className="p-8 pb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold">What&apos;s in your fridge?</h2>
+              {uploadedImage && (
+                <button
+                  onClick={() => setUploadSectionCollapsed(!uploadSectionCollapsed)}
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  {uploadSectionCollapsed ? (
+                    <ChevronDown className="w-6 h-6" />
+                  ) : (
+                    <ChevronUp className="w-6 h-6" />
+                  )}
+                </button>
+              )}
+            </div>
 
-            {isLoading && (
-              <div className="text-center text-gray-500 mt-6">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
-                <p className="mt-2">Analyzing ingredients...</p>
+            {/* Collapsible content */}
+            {!uploadSectionCollapsed && (
+              <div className="px-8 pb-8">
+                {/* Uploaded Image Preview */}
+                {uploadedImage && (
+                  <div className="mb-6">
+                    <img
+                      src={uploadedImage}
+                      alt="Uploaded fridge contents"
+                      className="w-full h-64 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
+
+                {/* Image Upload Button */}
+                <button
+                  onClick={() => setShowUploadModal(true)}
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-2 h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Upload className="w-8 h-8 text-gray-400" />
+                  <span className="text-sm text-gray-500">
+                    {uploadedImage ? 'Upload another photo' : 'Upload fridge photo'}
+                  </span>
+                </button>
+
+                {isLoading && (
+                  <div className="text-center text-gray-500 mt-6">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
+                    <p className="mt-2">Analyzing ingredients...</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -236,15 +358,18 @@ export default function Home() {
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h3 className="text-lg font-semibold mb-4">Detected Ingredients</h3>
               <div className="flex flex-wrap gap-2 mb-4">
-                {detectedItems.map((item, index) => (
-                  <span
-                    key={index}
-                    className="bg-green-100 text-green-800 px-3 py-2 rounded-full text-sm flex items-center gap-2"
-                  >
-                    <UtensilsCrossed className="w-4 h-4" />
-                    {item.name} ({(item.confidence * 100).toFixed(0)}%)
-                  </span>
-                ))}
+                {detectedItems.map((item, index) => {
+                  const IconComponent = getIngredientIcon(item.name);
+                  return (
+                    <span
+                      key={index}
+                      className="bg-green-100 text-green-800 px-3 py-2 rounded-full text-sm flex items-center gap-2"
+                    >
+                      <IconComponent className="w-4 h-4" />
+                      {item.name} ({(item.confidence * 100).toFixed(0)}%)
+                    </span>
+                  );
+                })}
               </div>
               <button
                 onClick={generateRecipes}
@@ -336,6 +461,45 @@ export default function Home() {
                       className="bg-green-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${((currentStep + 1) / (cookingRecipe.steps?.length || 1)) * 100}%` }}
                     ></div>
+                  </div>
+                </div>
+
+                {/* Timer */}
+                <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Cooking Timer</p>
+                        <p className="text-2xl font-bold text-gray-800">{formatTime(timer)}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {!timerRunning ? (
+                        <button
+                          onClick={startTimer}
+                          className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                          title="Start Timer"
+                        >
+                          <Play className="w-5 h-5" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={pauseTimer}
+                          className="p-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                          title="Pause Timer"
+                        >
+                          <Pause className="w-5 h-5" />
+                        </button>
+                      )}
+                      <button
+                        onClick={resetTimer}
+                        className="p-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                        title="Reset Timer"
+                      >
+                        <RotateCcw className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
