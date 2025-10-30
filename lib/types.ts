@@ -19,4 +19,5 @@ export type Recipe = {
   pantry_used: string[];
   rationale?: string;
   score?: { ease: number; time: number; nutrition: number; total: number };
+  image_url?: string;
 };

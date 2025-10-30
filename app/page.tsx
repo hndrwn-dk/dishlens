@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Upload, ChefHat } from 'lucide-react';
+import { Upload, ChefHat, X, Image as ImageIcon, UtensilsCrossed } from 'lucide-react';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -10,37 +10,47 @@ export default function Home() {
   const [cookingRecipe, setCookingRecipe] = useState<any>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Preview the uploaded image
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setUploadedImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
     setIsLoading(true);
     setDetectedItems([]);
+    setShowUploadModal(false);
     
     try {
-      console.log('📤 Uploading image:', file.name, file.size, 'bytes');
+      console.log('Uploading image:', file.name, file.size, 'bytes');
       
       const formData = new FormData();
       formData.append('image', file);
 
-      console.log('🌐 Calling /api/detect...');
+      console.log('Calling /api/detect...');
       const response = await fetch('/api/detect', {
         method: 'POST',
         body: formData,
       });
 
-      console.log('📡 Response status:', response.status);
+      console.log('Response status:', response.status);
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('❌ API Error:', errorData);
+        console.error('API Error:', errorData);
         alert(`Error: ${errorData.error || 'Upload failed'}`);
         return;
       }
 
       const data = await response.json();
-      console.log('✅ Detection result:', data);
+      console.log('Detection result:', data);
       
       setDetectedItems(data.items || []);
       
@@ -49,7 +59,7 @@ export default function Home() {
       }
       
     } catch (error) {
-      console.error('💥 Error detecting ingredients:', error);
+      console.error('Error detecting ingredients:', error);
       alert(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
@@ -94,17 +104,38 @@ export default function Home() {
     if (detectedItems.length === 0) return;
 
     setIsLoading(true);
+    setRecipes([]);
+    
     try {
+      console.log('Generating recipes for detected items:', detectedItems);
+      
       const response = await fetch('/api/recipes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items: detectedItems }),
       });
 
+      console.log('Recipe API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Recipe API error:', errorData);
+        alert(`Failed to generate recipes: ${errorData.error || 'Unknown error'}`);
+        return;
+      }
+
       const data = await response.json();
+      console.log('Received recipes:', data.recipes);
+      
+      if (!data.recipes || data.recipes.length === 0) {
+        alert('No recipes could be generated. Please try again.');
+        return;
+      }
+      
       setRecipes(data.recipes || []);
     } catch (error) {
       console.error('Error generating recipes:', error);
+      alert(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
@@ -127,29 +158,77 @@ export default function Home() {
           <div className="bg-white rounded-2xl shadow-lg p-8">
             <h2 className="text-xl font-semibold mb-4">What&apos;s in your fridge?</h2>
             
-            {/* Image Upload */}
-            <div className="mb-6">
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                <span className="text-sm text-gray-500">Upload fridge photo</span>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={isLoading}
-                />
-              </label>
-            </div>
+            {/* Image Upload Button */}
+            <button
+              onClick={() => setShowUploadModal(true)}
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <Upload className="w-8 h-8 text-gray-400" />
+              <span className="text-sm text-gray-500">Upload fridge photo</span>
+            </button>
 
             {isLoading && (
-              <div className="text-center text-gray-500">
+              <div className="text-center text-gray-500 mt-6">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
                 <p className="mt-2">Analyzing ingredients...</p>
               </div>
             )}
           </div>
         </div>
+
+        {/* Upload Modal */}
+        {showUploadModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6 relative">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold">Upload images</h3>
+                <button
+                  onClick={() => setShowUploadModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <ImageIcon className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <div className="mb-2">
+                    <span className="text-sm text-gray-600 underline">Click to upload</span>
+                    <span className="text-sm text-gray-600"> or Drag & Drop</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Supported formats: .jpeg, .png</p>
+                  <p className="text-xs text-gray-400">Maximum file size of 12MB.</p>
+                </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/jpeg,image/png,image/jpg"
+                  onChange={handleImageUpload}
+                  disabled={isLoading}
+                />
+              </label>
+
+              <div className="mt-6 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span>Recent</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+                <button
+                  onClick={() => setShowUploadModal(false)}
+                  className="px-6 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+                >
+                  Upload
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Detected Items */}
         {detectedItems.length > 0 && (
@@ -160,8 +239,9 @@ export default function Home() {
                 {detectedItems.map((item, index) => (
                   <span
                     key={index}
-                    className="bg-green-100 text-green-800 px-3 py-2 rounded-full text-sm"
+                    className="bg-green-100 text-green-800 px-3 py-2 rounded-full text-sm flex items-center gap-2"
                   >
+                    <UtensilsCrossed className="w-4 h-4" />
                     {item.name} ({(item.confidence * 100).toFixed(0)}%)
                   </span>
                 ))}
@@ -169,7 +249,7 @@ export default function Home() {
               <button
                 onClick={generateRecipes}
                 disabled={isLoading}
-                className="w-full bg-green-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-green-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? 'Generating Recipes...' : 'Generate Recipes'}
               </button>
@@ -183,28 +263,44 @@ export default function Home() {
             <h3 className="text-2xl font-semibold text-center mb-6">Your Recipe Options</h3>
             <div className="grid md:grid-cols-3 gap-6">
               {recipes.map((recipe, index) => (
-                <div key={index} className="bg-white rounded-2xl shadow-lg p-6">
-                  <h4 className="font-semibold text-lg mb-2">{recipe.title}</h4>
-                  <p className="text-sm text-gray-600 mb-4">
-                    {recipe.total_time_min} min • {recipe.difficulty} • Score: {recipe.score?.total || 'N/A'}
-                  </p>
-                  <div className="text-sm mb-4">
-                    <p className="font-medium mb-2">Ingredients:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      {recipe.ingredients?.slice(0, 4).map((ingredient: any, i: number) => (
-                        <li key={i}>{ingredient.item}</li>
-                      ))}
-                      {recipe.ingredients && recipe.ingredients.length > 4 && (
-                        <li className="text-gray-500">+{recipe.ingredients.length - 4} more...</li>
-                      )}
-                    </ul>
+                <div key={index} className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                  {/* Recipe Image */}
+                  <div className="w-full h-48 bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center">
+                    {recipe.image_url ? (
+                      <img 
+                        src={recipe.image_url} 
+                        alt={recipe.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <ChefHat className="w-16 h-16 text-green-600 opacity-50" />
+                    )}
                   </div>
-                  <button
-                    onClick={() => startCooking(recipe)}
-                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors"
-                  >
-                    🍳 Start Cooking
-                  </button>
+                  
+                  <div className="p-6">
+                    <h4 className="font-semibold text-lg mb-2">{recipe.title}</h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      {recipe.total_time_min} min • {recipe.difficulty} • Score: {recipe.score?.total || 'N/A'}
+                    </p>
+                    <div className="text-sm mb-4">
+                      <p className="font-medium mb-2">Ingredients:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        {recipe.ingredients?.slice(0, 4).map((ingredient: any, i: number) => (
+                          <li key={i}>{ingredient.item}</li>
+                        ))}
+                        {recipe.ingredients && recipe.ingredients.length > 4 && (
+                          <li className="text-gray-500">+{recipe.ingredients.length - 4} more...</li>
+                        )}
+                      </ul>
+                    </div>
+                    <button
+                      onClick={() => startCooking(recipe)}
+                      className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <ChefHat className="w-4 h-4" />
+                      Start Cooking
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -217,12 +313,15 @@ export default function Home() {
             <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">🍳 {cookingRecipe.title}</h2>
+                  <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <ChefHat className="w-7 h-7 text-green-600" />
+                    {cookingRecipe.title}
+                  </h2>
                   <button
                     onClick={finishCooking}
-                    className="text-gray-500 hover:text-gray-700 text-2xl"
+                    className="text-gray-500 hover:text-gray-700"
                   >
-                    ✕
+                    <X className="w-6 h-6" />
                   </button>
                 </div>
 

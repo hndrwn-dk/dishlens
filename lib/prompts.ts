@@ -10,7 +10,8 @@ Ingredients: ${itemsJson}
 Constraints: ${dietary?.join(", ") || "none"}
 Tools: ${tools?.join(", ") || "stovetop, oven"}
 Each recipe must include:
-title,total_time_min,difficulty,ingredients[{item,amount}],steps[],calories_est,protein_g_est,servings,pantry_used[],rationale
+title,total_time_min,difficulty,ingredients[{item,amount}],steps[],calories_est,protein_g_est,servings,pantry_used[],rationale,image_url
+For image_url, use Unsplash API format: https://source.unsplash.com/featured/400x300/?{recipe-name-keywords}
 Target time: 20–35 minutes when possible.
 `;
 }
