@@ -401,45 +401,9 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Mode Toggle */}
-              <div className="flex gap-2 mb-6">
-                <button
-                  onClick={() => setUploadMode('upload')}
-                  className={`flex-1 py-2.5 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-                    uploadMode === 'upload'
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  <Upload className="w-4 h-4" />
-                  Upload
-                </button>
-                <button
-                  onClick={() => setUploadMode('camera')}
-                  className={`flex-1 py-2.5 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-                    uploadMode === 'camera'
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  <Camera className="w-4 h-4" />
-                  Camera
-                </button>
-              </div>
-
-              {uploadMode === 'upload' ? (
-                <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                      <ImageIcon className="w-8 h-8 text-gray-400" />
-                    </div>
-                    <div className="mb-2">
-                      <span className="text-sm text-gray-600 underline">Click to upload</span>
-                      <span className="text-sm text-gray-600"> or Drag & Drop</span>
-                    </div>
-                    <p className="text-xs text-gray-400">Supported formats: .jpeg, .png</p>
-                    <p className="text-xs text-gray-400">Maximum file size of 12MB.</p>
-                  </div>
+              {/* Premium Icon Options */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <label className="relative cursor-pointer group">
                   <input
                     type="file"
                     className="hidden"
@@ -447,19 +411,16 @@ export default function Home() {
                     onChange={handleImageUpload}
                     disabled={isLoading}
                   />
-                </label>
-              ) : (
-                <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                      <Camera className="w-8 h-8 text-green-600" />
+                  <div className="flex flex-col items-center justify-center p-8 border-2 border-gray-200 rounded-2xl bg-gradient-to-br from-gray-50 to-white hover:from-green-50 hover:to-white hover:border-green-300 transition-all duration-300 shadow-sm hover:shadow-md">
+                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:shadow-lg transition-shadow">
+                      <Upload className="w-8 h-8 text-gray-700 group-hover:text-green-600 transition-colors" />
                     </div>
-                    <div className="mb-2">
-                      <span className="text-sm text-gray-600 font-medium">Take a photo</span>
-                    </div>
-                    <p className="text-xs text-gray-400">Use your device camera</p>
-                    <p className="text-xs text-gray-400">to capture your fridge contents</p>
+                    <span className="text-sm font-semibold text-gray-700 group-hover:text-green-600 transition-colors">Upload File</span>
+                    <span className="text-xs text-gray-500 mt-1">From device</span>
                   </div>
+                </label>
+
+                <label className="relative cursor-pointer group">
                   <input
                     type="file"
                     className="hidden"
@@ -468,8 +429,21 @@ export default function Home() {
                     onChange={handleImageUpload}
                     disabled={isLoading}
                   />
+                  <div className="flex flex-col items-center justify-center p-8 border-2 border-gray-200 rounded-2xl bg-gradient-to-br from-gray-50 to-white hover:from-green-50 hover:to-white hover:border-green-300 transition-all duration-300 shadow-sm hover:shadow-md">
+                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:shadow-lg transition-shadow">
+                      <Camera className="w-8 h-8 text-gray-700 group-hover:text-green-600 transition-colors" />
+                    </div>
+                    <span className="text-sm font-semibold text-gray-700 group-hover:text-green-600 transition-colors">Take Photo</span>
+                    <span className="text-xs text-gray-500 mt-1">Use camera</span>
+                  </div>
                 </label>
-              )}
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs text-blue-800 text-center">
+                  <span className="font-semibold">Tip:</span> For best results, take a clear photo of your fridge contents with good lighting
+                </p>
+              </div>
 
               <div className="mt-6 flex justify-end">
                 <button
