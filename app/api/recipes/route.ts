@@ -13,33 +13,46 @@ export async function POST(req: NextRequest) {
   try {
     const { items, dietary, tools } = await req.json();
     
-    console.log('🍳 Generating recipes for items:', JSON.stringify(items));
+    console.log('Generating recipes for items:', JSON.stringify(items));
 
     const input = [
       { role: "system" as const, content: RECIPES_SYSTEM },
       { role: "user" as const, content: recipesUser(JSON.stringify(items), dietary, tools) }
     ];
 
-    console.log('📤 Calling OpenAI API...');
+    console.log('Calling OpenAI API...');
     const r = await openai.chat.completions.create({ 
       model: "gpt-4o-mini", 
       messages: input,
       temperature: 0.7
     });
     
-    const text = r.choices[0]?.message?.content || "{}";
-    console.log('📥 OpenAI response:', text.substring(0, 200) + '...');
+    let text = r.choices[0]?.message?.content || "{}";
+    console.log('OpenAI response:', text.substring(0, 200) + '...');
+
+    // Strip markdown code blocks if present
+    text = text.trim();
+    if (text.startsWith('```')) {
+      const lines = text.split('\n');
+      // Remove first line (```json or ```)
+      lines.shift();
+      // Remove last line (```)
+      if (lines[lines.length - 1].trim() === '```') {
+        lines.pop();
+      }
+      text = lines.join('\n').trim();
+    }
 
     let parsed: any;
     try { 
       parsed = JSON.parse(text); 
     } catch (e) { 
-      console.error('❌ JSON parse error:', e);
+      console.error('JSON parse error:', e);
       return withCORS(NextResponse.json({ error: "LLM JSON parse error", raw: text }, { status: 502 })); 
     }
 
     if (!parsed.recipes || parsed.recipes.length === 0) {
-      console.warn('⚠️ No recipes generated');
+      console.warn('No recipes generated');
       return withCORS(NextResponse.json({ error: "No recipes generated", raw: text }, { status: 502 }));
     }
 
@@ -55,11 +68,11 @@ export async function POST(req: NextRequest) {
       .sort((a: any, b: any) => b.score.total - a.score.total)
       .slice(0, 3);
 
-    console.log('✅ Returning', top3.length, 'recipes');
+    console.log('Returning', top3.length, 'recipes');
     return withCORS(NextResponse.json({ recipes: top3 }));
     
   } catch (error) {
-    console.error('💥 Recipe generation error:', error);
+    console.error('Recipe generation error:', error);
     return withCORS(NextResponse.json({ 
       error: "Recipe generation failed", 
       details: error instanceof Error ? error.message : "Unknown error" 
