@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Upload, ChefHat, X, Image as ImageIcon, UtensilsCrossed, Apple, Fish, Egg, Milk, Wheat, Beef, Carrot, Leaf, Pizza, Clock, Play, Pause, RotateCcw, ChevronUp, ChevronDown, Camera } from 'lucide-react';
+import { Upload, ChefHat, X, Image as ImageIcon, UtensilsCrossed, Apple, Fish, Egg, Milk, Wheat, Beef, Carrot, Leaf, Pizza, Clock, Play, Pause, RotateCcw, ChevronUp, ChevronDown, Camera, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,6 +31,35 @@ export default function Home() {
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    const allowedMimeTypes = new Set([
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+      'image/heic',
+      'image/heif',
+      'image/heics',
+      'image/heifs',
+    ]);
+    const allowedExtensions = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif']);
+    const fileType = file.type?.toLowerCase() || '';
+    const fileExtension = file.name?.split('.').pop()?.toLowerCase() || '';
+    const isMimeImage = fileType.startsWith('image/');
+    const isAllowedMime = fileType ? allowedMimeTypes.has(fileType) || (isMimeImage && allowedExtensions.has(fileExtension)) : false;
+    const isAllowedExtension = fileExtension ? allowedExtensions.has(fileExtension) : false;
+
+    if (!isAllowedMime && !isAllowedExtension) {
+      alert('Unsupported file. Please upload an image (JPG, PNG, WebP, GIF, or HEIC).');
+      event.target.value = '';
+      return;
+    }
+
+    if (file.size === 0) {
+      alert('The selected file is empty. Please choose a valid image.');
+      event.target.value = '';
+      return;
+    }
 
     // Preview the uploaded image
     const reader = new FileReader();
@@ -195,6 +224,10 @@ export default function Home() {
       setTimer(0);
     }
   };
+
+  const totalSteps = cookingRecipe?.steps?.length || 0;
+  const completionPercent = totalSteps ? Math.round(((currentStep + 1) / totalSteps) * 100) : 0;
+  const isLastStep = totalSteps > 0 && currentStep >= totalSteps - 1;
 
   const getIngredientIcon = (ingredientName: string) => {
     const name = ingredientName.toLowerCase();
@@ -407,7 +440,7 @@ export default function Home() {
                   <input
                     type="file"
                     className="hidden"
-                    accept="image/jpeg,image/png,image/jpg"
+                    accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,image/heif"
                     onChange={handleImageUpload}
                     disabled={isLoading}
                   />
@@ -548,151 +581,163 @@ export default function Home() {
 
         {/* Cooking Mode */}
         {cookingRecipe && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold flex items-center gap-2">
-                    <ChefHat className="w-7 h-7 text-green-600" />
-                    {cookingRecipe.title}
-                  </h2>
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-6">
+            <div className="w-full md:max-w-3xl bg-white rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col max-h-[95vh]">
+              <div className="px-6 pt-4 pb-4 md:px-8 border-b border-gray-100 relative">
+                <div className="mx-auto h-1.5 w-16 rounded-full bg-gray-300 md:hidden" />
+                <div className="flex items-start justify-between mt-3 md:mt-0">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-green-600">Cooking Mode</p>
+                    <h2 className="mt-2 text-2xl font-bold text-gray-900 flex items-center gap-2">
+                      <ChefHat className="w-6 h-6 text-green-600" />
+                      {cookingRecipe.title}
+                    </h2>
+                  </div>
                   <button
                     onClick={finishCooking}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
+                    aria-label="Close cooking mode"
                   >
-                    <X className="w-6 h-6" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
-
-                {/* Progress */}
-                <div className="mb-6">
-                  <div className="flex justify-between text-sm text-gray-600 mb-2">
-                    <span>Step {currentStep + 1} of {cookingRecipe.steps?.length || 0}</span>
-                    <span>{Math.round(((currentStep + 1) / (cookingRecipe.steps?.length || 1)) * 100)}% Complete</span>
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span>Step {currentStep + 1} of {totalSteps}</span>
+                    <span>{completionPercent}% Ready</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${((currentStep + 1) / (cookingRecipe.steps?.length || 1)) * 100}%` }}
-                    ></div>
+                  <div className="mt-3 h-2 w-full rounded-full bg-gray-200 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-green-500 via-green-600 to-green-700 transition-all duration-300"
+                      style={{ width: `${completionPercent}%` }}
+                    />
                   </div>
                 </div>
+              </div>
 
-                {/* Current Step */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-semibold">Step {currentStep + 1}:</h3>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={prevStep}
-                        disabled={currentStep === 0}
-                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm hover:bg-gray-300 transition-colors"
-                      >
-                        Previous
-                      </button>
-                      <button
-                        onClick={nextStep}
-                        disabled={currentStep >= (cookingRecipe.steps?.length || 1) - 1}
-                        className="px-3 py-1 bg-green-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm hover:bg-green-700 transition-colors"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                    <p className="text-gray-800 text-lg">{cookingRecipe.steps?.[currentStep] || 'No steps available'}</p>
-                  </div>
+              <div className="flex-1 overflow-y-auto px-6 py-5 md:px-8 space-y-5">
+                <div className="rounded-3xl border border-green-100 bg-gradient-to-br from-green-50 via-white to-blue-50 p-5 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-green-600 mb-2">Current Step</p>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Step {currentStep + 1}</h3>
+                  <p className="text-base leading-relaxed text-gray-800">{cookingRecipe.steps?.[currentStep] || 'No steps available'}</p>
+                </div>
 
-                  {/* Timer - Only show if step has time requirement */}
-                  {currentStepHasTimer() && (
-                    <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Clock className="w-5 h-5 text-blue-600" />
-                          <div>
-                            <p className="text-sm text-blue-600 font-medium">Step Timer</p>
-                            <p className="text-2xl font-bold text-blue-800">{formatTime(timer)}</p>
-                            {getSuggestedTimeForStep() > 0 && (
-                              <p className="text-xs text-blue-600 mt-1">
-                                Suggested: {Math.floor(getSuggestedTimeForStep() / 60)} minutes
-                              </p>
-                            )}
-                          </div>
+                {currentStepHasTimer() && (
+                  <div className="rounded-3xl border border-blue-200 bg-blue-50/80 p-5 shadow-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-white p-3 shadow-sm">
+                          <Clock className="w-6 h-6 text-blue-600" />
                         </div>
-                        <div className="flex gap-2">
-                          {!timerRunning ? (
-                            <button
-                              onClick={startTimer}
-                              className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                              title="Start Timer"
-                            >
-                              <Play className="w-5 h-5" />
-                            </button>
-                          ) : (
-                            <button
-                              onClick={pauseTimer}
-                              className="p-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
-                              title="Pause Timer"
-                            >
-                              <Pause className="w-5 h-5" />
-                            </button>
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">Step Timer</p>
+                          <p className="text-3xl font-bold text-blue-900">{formatTime(timer)}</p>
+                          {getSuggestedTimeForStep() > 0 && (
+                            <p className="text-xs text-blue-700 mt-1">Suggested: {Math.floor(getSuggestedTimeForStep() / 60)} min</p>
                           )}
-                          <button
-                            onClick={resetTimer}
-                            className="p-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                            title="Reset Timer"
-                          >
-                            <RotateCcw className="w-5 h-5" />
-                          </button>
                         </div>
                       </div>
+                      <div className="flex items-center gap-2">
+                        {!timerRunning ? (
+                          <button
+                            onClick={startTimer}
+                            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-600 text-white shadow-sm transition-colors hover:bg-green-700"
+                            title="Start Timer"
+                          >
+                            <Play className="w-5 h-5" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={pauseTimer}
+                            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-500 text-white shadow-sm transition-colors hover:bg-yellow-600"
+                            title="Pause Timer"
+                          >
+                            <Pause className="w-5 h-5" />
+                          </button>
+                        )}
+                        <button
+                          onClick={resetTimer}
+                          className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-200 text-gray-700 transition-colors hover:bg-gray-300"
+                          title="Reset Timer"
+                        >
+                          <RotateCcw className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* Mark Complete Button */}
+                <div className="space-y-3 pb-20">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">All Steps</h3>
+                    <span className="text-xs font-medium text-gray-500">{totalSteps} steps total</span>
+                  </div>
+                  <div className="space-y-2">
+                    {(cookingRecipe.steps || []).map((step: string, index: number) => {
+                      const isActive = index === currentStep;
+                      const isDone = completedSteps.has(index);
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setCurrentStep(index);
+                            resetTimer();
+                          }}
+                          className={`w-full rounded-2xl border p-4 text-left transition-all ${
+                            isActive
+                              ? 'border-green-500 bg-green-50 shadow-sm'
+                              : isDone
+                              ? 'border-green-200 bg-white'
+                              : 'border-gray-200 bg-white hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className={`flex h-8 w-8 items-center justify-center rounded-2xl text-sm font-semibold ${
+                              isActive ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700'
+                            }`}>
+                              {index + 1}
+                            </span>
+                            <div className="flex-1">
+                              <p className="text-sm text-gray-800 leading-relaxed">{step}</p>
+                            </div>
+                            {isDone && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-6 pb-6 pt-4 md:px-8 bg-white border-t border-gray-100 shadow-[0_-12px_24px_-20px_rgba(15,23,42,0.35)]">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={prevStep}
+                    disabled={currentStep === 0}
+                    className="flex h-14 w-14 items-center justify-center rounded-2xl border border-gray-200 text-gray-600 transition-all hover:border-gray-300 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+                    aria-label="Previous step"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
                   <button
                     onClick={() => toggleStepComplete(currentStep)}
-                    className={`w-full mt-4 px-4 py-3 rounded-lg font-medium ${
+                    className={`flex flex-1 h-14 items-center justify-center gap-2 rounded-2xl font-semibold transition-all ${
                       completedSteps.has(currentStep)
-                        ? 'bg-green-600 text-white'
-                        : 'bg-blue-600 text-white'
+                        ? 'bg-green-600 text-white shadow-lg shadow-green-500/30'
+                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                     }`}
                   >
-                    {completedSteps.has(currentStep) ? 'Completed' : 'Mark as Complete'}
+                    <CheckCircle2 className={`w-5 h-5 ${completedSteps.has(currentStep) ? 'text-white' : 'text-green-600'}`} />
+                    {completedSteps.has(currentStep) ? 'Completed' : 'Mark Complete'}
                   </button>
-                </div>
-
-                {/* All Steps Overview */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">All Steps Overview:</h3>
-                  <div className="space-y-2">
-                    {(cookingRecipe.steps || []).map((step: string, index: number) => (
-                      <div
-                        key={index}
-                        className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                          index === currentStep
-                            ? 'border-green-500 bg-green-50'
-                            : completedSteps.has(index)
-                            ? 'border-green-300 bg-green-25'
-                            : 'border-gray-200 bg-white'
-                        }`}
-                        onClick={() => {
-                          setCurrentStep(index);
-                          resetTimer(); // Reset timer when clicking on a step
-                        }}
-                      >
-                        <div className="flex items-start">
-                          <span className="flex-shrink-0 w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-sm font-semibold mr-3">
-                            {index + 1}
-                          </span>
-                          <p className="text-sm text-gray-700 flex-1">{step}</p>
-                          {completedSteps.has(index) && (
-                            <span className="ml-auto text-green-600">✓</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <button
+                    onClick={isLastStep ? finishCooking : nextStep}
+                    disabled={totalSteps === 0}
+                    className="flex flex-[1.2] h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-green-500 via-green-600 to-green-700 font-semibold text-white shadow-lg shadow-green-500/35 transition-all hover:shadow-green-500/45 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <span>{isLastStep ? 'Finish Cooking' : 'Next Step'}</span>
+                    {isLastStep ? <ChefHat className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                  </button>
                 </div>
               </div>
             </div>
