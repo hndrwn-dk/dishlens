@@ -18,6 +18,14 @@ export type Recipe = {
   servings: number;
   pantry_used: string[];
   rationale?: string;
-  score?: { ease: number; time: number; nutrition: number; total: number };
+  score?: {
+    ease: number;
+    time: number;
+    nutrition: number;
+    coverage: number;
+    pantry: number;
+    diet: number;
+    total: number;
+  };
   image_url?: string;
 };
