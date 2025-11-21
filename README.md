@@ -2,6 +2,18 @@
 
 DishLens turns the contents of your fridge into curated meal ideas. Snap a photo, let our AI detect ingredients, generate recipes, and guide you through cooking with a premium, one-handed experience.
 
+**Live demo disabled – tokens exhausted** :D
+
+## Screenshot
+### Upload your image from your local or take a snap
+![Upload your image 1](https://github.com/hndrwn-dk/dishlens/blob/main/public/Screenshot%202025-11-21%20180933.png?raw=true)
+
+### Ingredient detection powered by Google Vision
+![Analyze_Ingredients](https://github.com/hndrwn-dk/dishlens/blob/main/public/1761875350761.jpg?raw=true)
+
+### Generate Recipe And Start Cooking
+![Start_Cooking](https://github.com/hndrwn-dk/dishlens/blob/main/public/1761875350360.jpg?raw=true)
+
 ## Core Features
 - Smart ingredient detection powered by Google Vision with strict image-only upload validation
 - Recipe generation that blends detected items with OpenAI culinary insights
